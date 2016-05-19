@@ -1,4 +1,4 @@
-#include <stdio.h>
+blah#include <stdio.h>
 #include <stdlib.h>
 #include <luaT.h>
 #include <string.h>
