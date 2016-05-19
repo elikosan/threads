@@ -34,7 +34,8 @@ static int runthread(void *code_)
   return 0;
 }
 
-void* THThread_main(void *arg)
+
+thread_export void* THThread_main(void *arg)
 {
   THThreadState* state = arg;
   state->status = runthread(state->data);

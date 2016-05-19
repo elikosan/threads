@@ -7,7 +7,7 @@
 #if defined(USE_PTHREAD_THREADS)
 #include <pthread.h>
 
-#elif defined(USE_WIN32_THREADS)
+#elif defined(USE_WIN_THREADS)
 
 /* very basic emulation to suit our needs */
 
@@ -16,14 +16,16 @@
 
 typedef HANDLE pthread_t;
 typedef DWORD pthread_attr_t;
+typedef DWORD pthread_mutexattr_t;
+typedef DWORD pthread_condattr_t;
 typedef HANDLE pthread_mutex_t;
 typedef HANDLE pthread_cond_t;
 
-static int pthread_create(pthread_t *restrict thread,
-                          const pthread_attr_t *restrict attr, void *(*start_routine)(void *),
-                          void *restrict arg)
+static int pthread_create(pthread_t *thread,
+                          const pthread_attr_t *attr, void *(*start_routine)(void *),
+                          void *arg)
 {
-  *thread = (HANDLE)_beginthreadex(NULL, 0, (THREAD_FUNCTION)start_routine, arg, 0, NULL);
+  *thread = (HANDLE)_beginthreadex(NULL, 0, (_beginthreadex_proc_type)start_routine, arg, 0, NULL);
   return (int)(*thread == NULL);
 }
 
@@ -32,8 +34,8 @@ static int pthread_join(pthread_t thread, void **value_ptr)
   return ((WaitForSingleObject((thread), INFINITE) != WAIT_OBJECT_0) || !CloseHandle(thread));
 }
 
-static int pthread_mutex_init(pthread_mutex_t *restrict mutex,
-                              const pthread_mutexattr_t *restrict attr)
+static int pthread_mutex_init(pthread_mutex_t *mutex,
+                              pthread_mutexattr_t *attr)
 {
   *mutex = CreateMutex(NULL, FALSE, NULL);
   return (int)(*mutex == NULL);
@@ -41,7 +43,7 @@ static int pthread_mutex_init(pthread_mutex_t *restrict mutex,
 
 static int pthread_mutex_lock(pthread_mutex_t *mutex)
 {
-  return WaitForSingleObject(*mutex, INFINITE) == 0;
+  return WaitForSingleObject(*mutex, INFINITE);
 }
 
 static int pthread_mutex_unlock(pthread_mutex_t *mutex)
@@ -51,21 +53,21 @@ static int pthread_mutex_unlock(pthread_mutex_t *mutex)
 
 static int pthread_mutex_destroy(pthread_mutex_t *mutex)
 {
-  return CloseHandle(*mutex) == 0;
+  return CloseHandle(*mutex) == S_OK;
 }
 
-static int pthread_cond_init(pthread_cond_t *restrict cond,
-                             const pthread_condattr_t *restrict attr)
+static int pthread_cond_init(pthread_cond_t *cond,
+                             pthread_condattr_t *attr)
 {
   *cond = CreateEvent(NULL, FALSE, FALSE, NULL);
   return (int)(*cond == NULL);
 }
 
-static int pthread_cond_wait(pthread_cond_t *restrict cond,
-                             pthread_mutex_t *restrict mutex)
+static int pthread_cond_wait(pthread_cond_t *cond,
+                             pthread_mutex_t *mutex)
 {
   SignalObjectAndWait(*mutex, *cond, INFINITE, FALSE);
-  return WaitForSingleObject(*mutex, INFINITE) == 0;
+  return WaitForSingleObject(*mutex, INFINITE);
 }
 
 static int pthread_cond_destroy(pthread_cond_t *cond)

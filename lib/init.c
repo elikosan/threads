@@ -1,6 +1,8 @@
 #include <lua.h>
 #include <lauxlib.h>
 
+#include "THThread.h"
+
 #if LUA_VERSION_NUM == 501
 static void luaL_setfuncs(lua_State *L, const luaL_Reg *l, int nup)
 {
@@ -26,7 +28,7 @@ static void luaL_setfuncs(lua_State *L, const luaL_Reg *l, int nup)
 #include "threads.c"
 #include "queue.c"
 
-int luaopen_libthreads(lua_State *L)
+thread_export int luaopen_libthreads(lua_State *L)
 {
   lua_newtable(L);
   thread_init_pkg(L);

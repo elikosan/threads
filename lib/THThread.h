@@ -27,4 +27,13 @@ int THCondition_signal(THCondition *self);
 int THCondition_wait(THCondition *self, THMutex *mutex);
 void THCondition_free(THCondition *self);
 
+
+#if _WIN32
+#include <process.h>
+#include <windows.h>
+#define thread_export __declspec (dllexport)
+#else
+#define thread_export 
+#endif
+
 #endif

@@ -2,13 +2,21 @@
 #include <stdlib.h>
 #include <luaT.h>
 #include <string.h>
-#include <dlfcn.h>
 
 #include "THThread.h"
 #include "luaTHRD.h"
 
 #include <lua.h>
 #include <lualib.h>
+
+#ifdef _WIN32
+#include "dlfcn_win32.c"
+static const char* libthreadmain = "threadsmain.dll";
+#else
+#include <dlfcn.h>
+static const char* libthreadmain = "libthreadsmain.so";
+#endif
+
 
 static int thread_new(lua_State *L)
 {
@@ -21,10 +29,11 @@ static int thread_new(lua_State *L)
   memcpy(code_dup, code, len+1);
 
 #ifdef RTLD_NODELETE /* platforms like android dont seem to support this */
-  void* lib = dlopen("libthreadsmain.so", RTLD_LAZY|RTLD_LOCAL|RTLD_NODELETE);
+  void* lib = dlopen(libthreadmain, RTLD_LAZY|RTLD_LOCAL|RTLD_NODELETE);
 #else
-  void* lib = dlopen("libthreadsmain.so", RTLD_LAZY|RTLD_LOCAL);
+  void* lib = dlopen(libthreadmain, RTLD_LAZY|RTLD_LOCAL);
 #endif
+
   if (!lib) {
     free(code_dup);
     luaL_error(L, "threads: dlopen: %s", dlerror());
@@ -84,6 +93,8 @@ static int mutex_new(lua_State *L)
   if(!mutex)
     luaL_error(L, "threads: mutex new failed");
   luaTHRD_pushudata(L, mutex, "threads.Mutex");
+
+
   return 1;
 }
 
@@ -106,7 +117,9 @@ static int mutex_id(lua_State *L)
 static int mutex_lock(lua_State *L)
 {
   THMutex *mutex = luaTHRD_checkudata(L, 1, "threads.Mutex");
-  if(THMutex_lock(mutex))
+  int ret = THMutex_lock(mutex);
+  printf("mutex_lock %d\n", ret);
+  if(ret)
     luaL_error(L, "threads: mutex lock failed");
   return 0;
 }

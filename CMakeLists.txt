@@ -43,5 +43,6 @@ else()
 endif()
 
 IF(LUALIB)
+  target_link_libraries(threads ${LUALIB})
   TARGET_LINK_LIBRARIES(threadsmain ${LUALIB})
 ENDIF()
