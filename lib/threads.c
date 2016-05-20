@@ -118,7 +118,6 @@ static int mutex_lock(lua_State *L)
 {
   THMutex *mutex = luaTHRD_checkudata(L, 1, "threads.Mutex");
   int ret = THMutex_lock(mutex);
-  printf("mutex_lock2 %d",ret);
   if(ret)
     luaL_error(L, "threads: mutex lock failed");
   return 0;
