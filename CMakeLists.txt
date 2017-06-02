@@ -6,6 +6,22 @@ set(CMAKE_MODULE_PATH
 
 find_package(Torch REQUIRED)
 
+set(CMAKE_REQUIRED_INCLUDES  ${LUA_INCDIR})
+set(CMAKE_REQUIRED_LIBRARIES ${LUA_LIBDIR}/${LUALIB})
+include(CheckCSourceCompiles)
+check_c_source_compiles("
+#include <lauxlib.h>
+int main()
+{
+  long i = sizeof(&luaL_setfuncs);
+  return 0;
+}
+" HAS_LUAL_SETFUNCS)
+if(HAS_LUAL_SETFUNCS)
+  add_definitions(-DHAS_LUAL_SETFUNCS)
+endif()
+
+
 set(src
   lib/init.c
   lib/THThread.c
