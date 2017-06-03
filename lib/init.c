@@ -3,7 +3,7 @@
 
 #include "THThread.h"
 
-#if LUA_VERSION_NUM == 501
+#if LUA_VERSION_NUM == 501 && !defined(HAS_LUAL_SETFUNCS)
 static void luaL_setfuncs(lua_State *L, const luaL_Reg *l, int nup)
 {
   luaL_checkstack(L, nup+1, "too many upvalues");
